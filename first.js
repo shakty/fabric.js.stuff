@@ -92,6 +92,8 @@ function drawQuadratic(options) {
 
   line.selectable = true;
   canvas.add(line);
+  
+	console.log(line);
 
   var p1 = makeCurvePoint(options.controlx, options.controly, line);
   p1.name = "p1";
@@ -252,26 +254,28 @@ function onObjectMoving(e) {
 	    	}
 	    	else if (o.name === 'p2') {
 	    		
-	    		var originalPath01 = o.line.path[0][1];
-	    		var originalPath02 = o.line.path[0][1];
+//	    		var originalPath01 = o.line.path[0][1];
+//	    		var originalPath02 = o.line.path[0][1];
+//	    		
+//	    		var originalPath11 = o.line.path[1][1];
+//	    		var originalPath12 = o.line.path[1][2];
+//	    		
+//	    		var originalPath13 = o.line.path[1][3];
+//	    		var originalPath14 = o.line.path[1][4];
 	    		
-	    		var originalPath11 = o.line.path[1][1];
-	    		var originalPath12 = o.line.path[1][2];
+	    		//console.log(originalPath01);
 	    		
-	    		var originalPath13 = o.line.path[1][3];
-	    		var originalPath14 = o.line.path[1][4];
-	    		
-	    		console.log(originalPath01);
-	    		
-	    		o.line.path[0][1] = o.line.path[0][1] - (originalPath01 - o.left);
-			      o.line.path[0][2] = o.line.path[0][2] - (originalPath02 - o.top);
+	    		o.line.path[0][1] = o.line.path[0][1] - (o.line.path[0][1] - o.left);
+			      o.line.path[0][2] = o.line.path[0][2] - (o.line.path[0][2] - o.top);
 			     // console.log('p0 ' + o.refs[1].left);
 			      
-			      o.line.path[1][3] = o.line.path[1][3] - (originalPath11 - o.left);
-			      o.line.path[1][4] =  o.line.path[1][4] - (originalPath12 - o.top);
+			      o.line.path[1][3] = o.line.path[1][3] - (o.line.path[1][3] - o.left);
+			      o.line.path[1][4] =  o.line.path[1][4] - (o.line.path[1][4] - o.top);
 			      
-			      o.refs[1].left = o.line.path[0][1] - (originalPath13 - o.left);
-			      o.refs[1].top = o.line.path[0][2] - (originalPath14 - o.top);
+			      o.refs[1].left = o.line.path[0][1] - (o.line.path[0][1] - o.left);
+			      o.refs[1].top = o.line.path[0][2] - (o.line.path[0][2] - o.top);
+	    		
+	    		
 			      
 			      
 	    	}
@@ -289,7 +293,7 @@ function onObjectMoving(e) {
 
 	}
 	
-//	console.log(o.line);
+	console.log(o.line);
   
 }
 
