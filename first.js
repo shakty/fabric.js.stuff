@@ -55,16 +55,6 @@ for (var i=0; i < -1; i++) {
 }
 
 
-
-//var s = 'M 100 200 Q 100, 100, 200, 0';
-//
-//var line = new fabric.Path( s, { fill: '', 
-//	  							   stroke: 'red',
-//	  							   strokeWidth: 5
-//	  							   });
-//canvas.add(line);
-
-
 function drawQuadratic(options) {
 
   var options = options || {};
@@ -90,8 +80,8 @@ function drawQuadratic(options) {
 	line.path[1][3] = options.endx;
 	line.path[1][4] = options.endy;
 
-  line.selectable = true;
-  canvas.add(line);
+	line.selectable = true;
+	canvas.add(line);
   
 	console.log(line);
 
@@ -265,26 +255,37 @@ function onObjectMoving(e) {
 	    		
 	    		//console.log(originalPath01);
 	    		
-	    		o.line.path[0][1] = o.line.path[0][1] - (o.line.path[0][1] - o.left);
-			      o.line.path[0][2] = o.line.path[0][2] - (o.line.path[0][2] - o.top);
+	    		var offsetx = o.originalState.left - o.left;
+	    		var offsety = o.originalState.top - o.top;
+	    		console.log(offsetx);
+	    		console.log(o.line.path[0][1] - offsetx);
+	    		
+	    		o.line.path[0][1] -= offsetx;
+	    		o.line.path[0][2] -= offsety;
 			     // console.log('p0 ' + o.refs[1].left);
 			      
-			      o.line.path[1][3] = o.line.path[1][3] - (o.line.path[1][3] - o.left);
-			      o.line.path[1][4] =  o.line.path[1][4] - (o.line.path[1][4] - o.top);
+			      o.line.path[1][3] -= offsetx;
+			      o.line.path[1][4] -= offsety;
 			      
-			      o.refs[1].left = o.line.path[0][1] - (o.line.path[0][1] - o.left);
-			      o.refs[1].top = o.line.path[0][2] - (o.line.path[0][2] - o.top);
+			      o.refs[1].left -= offsetx;
+			      o.refs[1].top -= offsety;
+			      
+			      o.originalState.left = o.left;
+			      o.originalState.top = o.top;
+			      
 	    		
 	    		
 			      
 			      
 	    	}
-	      if (o.name === 'p1') {
+	      //if (o.name === 'p0' || o.name === 'p2') {
 	    	  var transformed = project2Line(o.refs[1].left,o.refs[1].top, o.refs[2].left, o.refs[2].top, o.refs[0].left, o.refs[0].top);
-	      }
-	      else {
-	    	  var transformed = computeMidPoint(o.refs[1].left,o.refs[1].top, o.refs[2].left, o.refs[2].top);
-	      }
+	    	  transformed[0] -= offsetx;
+	    	  transformed[1] -= offsety;
+//	      }
+//	      else {
+//	    	  var transformed = computeMidPoint(o.refs[1].left,o.refs[1].top, o.refs[2].left, o.refs[2].top);
+//	      }
 	      	o.refs[0].left = transformed[0];
 	    	o.refs[0].top = transformed[1];
 	    	o.line.path[1][1] = o.refs[0].left + offsetx;
