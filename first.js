@@ -5,29 +5,32 @@ canvas.observe({
   'object:selected': onObjectSelected,
   'object:moving': onObjectMoving,
   'before:selection:cleared': onBeforeSelectionCleared,
-  'object:dblclick': doit // not working
+//  'mouse:up': doit // not working
 });
 
-function doit(){ alert('culo');};
+function doit(){ canvas.renderAll.bind(canvas);};
 
 // Arcs
 for (var i=0; i < 1; i++) {
 	
 	var options = {};
+	options.startx = Math.random() * 500 + 1;
+	options.starty = Math.random() * 500 + 1;
 	
-	options.b1x = Math.random() * 500 + 1;
-	options.b1y = Math.random() * 500 + 1;
+	console.log(options.startx);
+	console.log(options.starty);
 	
-	options.b1t = Math.random() * 500 + 1;
-	options.b1o = Math.random() * 500 + 1;
 	
-	var tmpx = Math.abs(options.b1x - options.b1t) / 2;
-	var tmpy = Math.abs(options.b1y - options.b1o) / 2;
+	options.endx = Math.random() * 500 + 1;
+	options.endy = Math.random() * 500 + 1;
 	
-	options.p1x = tmpx + Math.min(options.b1x,options.b1t);
-	options.p1y = tmpy + Math.min(options.b1y,options.b1o);
+	var tmpx = Math.abs(options.startx - options.endx) / 2;
+	var tmpy = Math.abs(options.starty - options.endy) / 2;
 	
-	console.log(options);
+	options.controlx = tmpx + Math.min(options.startx,options.endx);
+	options.controly = tmpy + Math.min(options.starty,options.endy);
+	
+	//console.log(options);
 	
 	drawQuadratic(options);
 }
@@ -41,7 +44,7 @@ for (var i=0; i < -1; i++) {
 	var c3 = Math.round(Math.random()*10);
 	
 	var color = '#' + c1 + c2 + c3;
-	console.log(color);
+	//console.log(color);
 	
 	canvas.add(new fabric.Circle({ radius: Math.random() * 100 + 1, 
 								   strokeWidth: 5,
@@ -68,7 +71,7 @@ function drawQuadratic(options) {
 
   var s = 'M ' + options.p1x + ' ' + options.p1y + ' ';
   s+= 'Q ' + options.b1x + ', ' + options.b1y + ', ' + options.b1t + ', ' + options.b1o;
-  //console.log(s);
+  ////console.log(s);
   var s = 'M 0 0 Q 0, 0, 0, 0';
   
   var line = new fabric.Path( s, { fill: '', 
@@ -76,59 +79,50 @@ function drawQuadratic(options) {
 	  							   strokeWidth: 5
 	  							   });
   
-  line.selectable = true;
   //line.hasBorders = line.hasControls = false;
 
-  line.path[0][1] = options.b1x;
-  line.path[0][2] = options.b1y;
+	line.path[0][1] = options.startx;
+	line.path[0][2] = options.starty;
+	
+	line.path[1][1] = options.controlx;
+	line.path[1][2] = options.controly;
+	
+	line.path[1][3] = options.endx;
+	line.path[1][4] = options.endy;
 
-  line.path[1][1] = options.b1t;
-  line.path[1][2] = options.b1o;
-
-  line.path[1][3] = options.b1t;
-  line.path[1][4] = options.b1o;
-
-//  // First Point
-//  line.path[0][1] = 100;
-//  line.path[0][2] = 100;
-//
-//  // Control Point
-//  line.path[1][1] = 200;
-//  line.path[1][2] = 200;
-//
-//  // End Point
-//  line.path[1][3] = 300;
-//  line.path[1][4] = 100;
-
-
-  //line.selectable = false;
+  line.selectable = true;
   canvas.add(line);
 
-  var p1 = makeCurvePoint(options.p1x, options.p1y, line);
+  var p1 = makeCurvePoint(options.controlx, options.controly, line);
   p1.name = "p1";
 	
   canvas.add(p1);
 
-  var p0 = makeCurveCircle(options.b1x, options.b1y, line, p1);
+  var p0 = makeStartCircle(options.startx, options.starty, line, p1);
   p0.name = "p0";
   canvas.add(p0);
 
-  var p2 = makeCurveCircle(options.b1t, options.b1o, line, p1); 
+  var p2 = makeEndCircle(options.endx, options.endy, line, p1); 
   p2.name = "p2";
   canvas.add(p2);
+  
+  p0.refs = p2.refs = p1.refs;
 
 };
 
-function makeCurveCircle(left, top, line, control) {
+function makeStartCircle(left, top, line, control) {
   var c = new fabric.Circle({
     left: left,
     top: top,
     strokeWidth: 5,
     radius: 3,
     fill: '#fff',
-    stroke: '#666'
+    stroke: 'green'
   });
 
+  c.lockRotation = true;
+  c.lockScalingX = true;
+  c.lockScalingY = true;
   c.hasBorders = c.hasControls = false;
 
   c.line = line;
@@ -141,6 +135,31 @@ function makeCurveCircle(left, top, line, control) {
   return c;
 }
 
+function makeEndCircle(left, top, line, control) {
+	  var c = new fabric.Circle({
+	    left: left,
+	    top: top,
+	    strokeWidth: 5,
+	    radius: 3,
+	    fill: '#fff',
+	    stroke: 'red'
+	  });
+
+	  c.lockRotation = true;
+	  c.lockScalingX = true;
+	  c.lockScalingY = true;
+	  c.hasBorders = c.hasControls = false;
+
+	  c.line = line;
+	  c.control = control;
+	  
+	  // Adding the refs to the curvepoint
+	  control.refs.push(c);
+	  
+	  
+	  return c;
+	}
+
 function makeCurvePoint(left, top, line) {
   var c = new fabric.Circle({
     left: left,
@@ -151,9 +170,13 @@ function makeCurvePoint(left, top, line) {
     stroke: '#666'
   });
 
+  
+  c.lockRotation = true;
+  c.lockScalingX = true;
+  c.lockScalingY = true;
   c.hasBorders = c.hasControls = false;
   c.line = line;
-  c.refs = [];
+  c.refs = [c];
 
   return c;
 }
@@ -164,78 +187,109 @@ function onObjectSelected(e) {
   if (activeObject.name == "p0" || activeObject.name == "p2") {
     activeObject.control.animate('opacity', '1', { 
       duration: 200,
-      onChange: canvas.renderAll.bind(canvas),
+      onChange: canvas.renderAll.bind(canvas)
     });
     activeObject.control.selectable = true;
   }
   
-  console.log(activeObject.toObject());
+  //console.log(activeObject.toObject());
   
 }
 
 function onBeforeSelectionCleared(e) {
   var activeObject = e.memo.target;
-  if (activeObject.name == "p0" || activeObject.name == "p2") {
-    activeObject.control.animate('opacity', '0', { 
+  console.log(e.memo.target);
+  canvas.renderAll.bind(canvas)
+  
+//  if (activeObject.name == "p0" || activeObject.name == "p2") {
+//    activeObject.animate('opacity', '0.5', { 
+//      duration: 200,
+//      onChange: canvas.renderAll.bind(canvas)
+//    });
+//    //activeObject.control.selectable = false;
+//  }
+//  else if (activeObject.name == "p1") {	  
+	activeObject.animate('opacity', '0.5', { 
       duration: 200,
-      onChange: canvas.renderAll.bind(canvas),
-    });
-    //activeObject.control.selectable = false;
-  }
-  else if (activeObject.name == "p1") {
-    
-	  activeObject.top = activeObject.control.path[1][1];
-	  activeObject.left = activeObject.control.path[1][2];  
-	  
-	activeObject.animate('opacity', '0', { 
-      duration: 200,
-      onChange: canvas.renderAll.bind(canvas),
+      onChange: canvas.renderAll.bind(canvas)
     });
 	
     //activeObject.selectable = false;
     
     
-  }
+ // }
 }
 
 function onObjectMoving(e) {
+
+	var objs = [e.memo.target];
+	var offsetx = 0;
+	var offsety = 0;
 	
-	var objs = (!e.memo.target.objects) ? [e.memo.target] : e.memo.target.objects;
+	if (e.memo.target.objects) {
+		var objs = e.memo.target.objects;
+		var offsetx = e.memo.target.originalState.left;
+		var offsety = e.memo.target.originalState.top;
+	}
+	
+	
 	
 	for (var i=0; i < objs.length; i++) {
 		var o = objs[i];
-		console.log(o.name);
-		
-	  
-	  if (o.name == "p0") {
-	    if (o.line) {
-	      o.line.path[0][1] = o.left;
-	      o.line.path[0][2] = o.top;
+//		console.log(i);
+		console.log(o);
+
+	    if (o.line && o.refs) {
+	    	
+	    	if (o.name === 'p0') {	
+		      o.line.path[0][1] = o.refs[1].left + offsetx;
+		      o.line.path[0][2] = o.refs[1].top + offsety;
+		     // console.log('p0 ' + o.refs[1].left);
+		      
+		      o.line.path[1][3] = o.refs[2].left + offsetx;
+		      o.line.path[1][4] = o.refs[2].top + offsety;
+		      //console.log('p2 updated line');
+	    	}
+	    	else if (o.name === 'p2') {
+	    		
+	    		var originalPath01 = o.line.path[0][1];
+	    		var originalPath02 = o.line.path[0][1];
+	    		
+	    		var originalPath11 = o.line.path[1][1];
+	    		var originalPath12 = o.line.path[1][2];
+	    		
+	    		var originalPath13 = o.line.path[1][3];
+	    		var originalPath14 = o.line.path[1][4];
+	    		
+	    		console.log(originalPath01);
+	    		
+	    		o.line.path[0][1] = o.line.path[0][1] - (originalPath01 - o.left);
+			      o.line.path[0][2] = o.line.path[0][2] - (originalPath02 - o.top);
+			     // console.log('p0 ' + o.refs[1].left);
+			      
+			      o.line.path[1][3] = o.line.path[1][3] - (originalPath11 - o.left);
+			      o.line.path[1][4] =  o.line.path[1][4] - (originalPath12 - o.top);
+			      
+			      o.refs[1].left = o.line.path[0][1] - (originalPath13 - o.left);
+			      o.refs[1].top = o.line.path[0][2] - (originalPath14 - o.top);
+			      
+			      
+	    	}
+	      if (o.name === 'p1') {
+	    	  var transformed = project2Line(o.refs[1].left,o.refs[1].top, o.refs[2].left, o.refs[2].top, o.refs[0].left, o.refs[0].top);
+	      }
+	      else {
+	    	  var transformed = computeMidPoint(o.refs[1].left,o.refs[1].top, o.refs[2].left, o.refs[2].top);
+	      }
+	      	o.refs[0].left = transformed[0];
+	    	o.refs[0].top = transformed[1];
+	    	o.line.path[1][1] = o.refs[0].left + offsetx;
+	    	o.line.path[1][2] =	o.refs[0].top + offsety;
 	    }
-	  }
-	  else if (o.name == "p2") {
-	    if (o.line) {
-	      o.line.path[1][3] = o.left;
-	      o.line.path[1][4] = o.top;
-	    }
-	    console.log(o);
-	    // TODO: render only the path
-	    //canvas.renderAll();	    
-	  }
-	  else if (o.name == "p1") {
-	
-//		  console.log(o.control.path[1][1]);
-//		  console.log(o.control.path[1][1]);
-//		  
-	    if (o.line) {
-	    	var transformed = project2Line(o.refs[0].left,o.refs[0].top, o.refs[1].left, o.refs[1].top, o.left, o.top);
-	    	o.left = transformed[0];
-	    	o.top = transformed[1];
-	    	o.line.path[1][1] = o.left;
-	    	o.line.path[1][2] = o.top;
-	    }
-	  }
+
 	}
+	
+//	console.log(o.line);
   
 }
 
@@ -245,9 +299,9 @@ removeSelectedEl.onclick = function() {
   var activeObject = canvas.getActiveObject(),
       activeGroup = canvas.getActiveGroup();
   
-  console.log('Removing');
-  console.log(activeObject);
-  console.log(activeGroup);
+  //console.log('Removing');
+  //console.log(activeObject);
+  //console.log(activeGroup);
   
   if (activeObject) {
     canvas.remove(activeObject);
@@ -268,9 +322,9 @@ bringToFront.onclick = function() {
       activeGroup = canvas.getActiveGroup();
   
   
-  console.log('Bringing to Front');
-  console.log(activeObject);
-  console.log(activeGroup);
+  //console.log('Bringing to Front');
+  //console.log(activeObject);
+  //console.log(activeGroup);
   
   if (activeObject) {
     canvas.bringForward(activeObject);
@@ -289,26 +343,26 @@ bringToFront.onclick = function() {
 document.getElementById('redraw').onclick = function() {
 	var o = canvas.toObject().objects;
 	for (var i = 0; i < o.length; i++) {
-		console.log('uh');
+		//console.log('uh');
 		c2.add(o[i]);
 	}
 	
 	c2.renderAll();
 	c2.renderAll.bind(canvas);
 	
-	console.log(canvas);
-	console.log(c2);
+	//console.log(canvas);
+	//console.log(c2);
 };
   
   // Project the point (c,d) on the line orthogonal to the one
   // passing through the points (x,y) and (z,t)
   function project2Line (x, y, z, t, c, d) {
 	  var mid = computeMidPoint(x, y, z, t);
-	  //console.log(mid);
+	  ////console.log(mid);
 	  var m = computeSlope(x, y, z, t);
-	  //console.log(m);
+	  ////console.log(m);
 	  var b = computeIntersect(-m, mid[0], mid[1]);
-	  //console.log(b);
+	  ////console.log(b);
 	  return project2OLine (m, b, c, d);
   };
   
@@ -348,7 +402,6 @@ document.getElementById('redraw').onclick = function() {
   var d = 2;
   
   var p = project2Line( x1, y1, x2, y2, c, d);
- 
   
 //  canvas.add(new fabric.Point(p[0],p[1]), {
 //	  										'fill': 'red'
